@@ -2,7 +2,8 @@ import * as constants from './constants'
 import { fromJS } from 'immutable'
 
 const defaultState = fromJS({
-  focused: false
+  focused: false,
+  list: [] // list会变成immutable数组
 })
 
 export default (state = defaultState, action) => {
@@ -21,6 +22,9 @@ export default (state = defaultState, action) => {
     //   focused: false
     // }
     return state.set('focused', false)
+  }
+  if (action.type === constants.CHANGE_LIST) {
+    return state.set('list', action.data)
   }
   return state
 }
