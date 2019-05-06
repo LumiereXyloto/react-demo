@@ -2,6 +2,14 @@ import * as constants from './constants'
 import axios from 'axios'
 import { fromJS } from 'immutable'
 
+const changeList = (data) => {
+  return {
+    type: constants.CHANGE_LIST,
+    data: fromJS(data),
+    totalPage: Math.ceil(data.length / 10)
+  }
+}
+
 export const searchFocus = () => ({
   type: constants.SEARCH_FOCUS
 })
@@ -9,13 +17,6 @@ export const searchFocus = () => ({
 export const searchBlur = () => ({
   type: constants.SEARCH_BLUR
 })
-
-const changeList = (data) => {
-  return {
-    type: constants.CHANGE_LIST,
-    data: fromJS(data)
-  }
-}
 
 export const getList = () => {
   return (dispatch) => {
@@ -29,5 +30,24 @@ export const getList = () => {
       .catch(() => {
         console.log('error')
       })
+  }
+}
+
+export const mouseEnter = () => {
+  return {
+    type: constants.MOUSE_ENTER
+  }
+}
+
+export const mouseLeave = () => {
+  return {
+    type: constants.MOUSE_LEAVE
+  }
+}
+
+export const changePage = (page) => {
+  return {
+    type: constants.CHANGE_PAGE,
+    page
   }
 }

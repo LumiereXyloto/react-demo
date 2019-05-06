@@ -21,22 +21,35 @@ import {
 
 class Header extends Component {
 
-  getListArea = (show) => {
-    if (show) {
+  getListArea = () => {
+
+    const { focused, list, page, mouseIn, totalPage, handleMouseEnter, handleMouseLeave, handleChangePage } = this.props
+    const jsList = list.toJS()
+    const pageList = []
+
+    if (jsList.length) {
+      for (let i = (page - 1) * 10; i < page * 10; i++) {
+        pageList.push(
+          <SearchInfoItem key={jsList[i]}>{jsList[i]}</SearchInfoItem>
+        )
+      }
+    }
+
+    if (focused || mouseIn) {
       return (
-        <SearchInfo>
+        <SearchInfo
+          onMouseEnter={handleMouseEnter}
+          onMouseLeave={handleMouseLeave}
+        >
           <SearchInfoTitle>
             热门搜索
-            <SearchInfoSwitch>换一批</SearchInfoSwitch>
+            <SearchInfoSwitch onClick={() => handleChangePage(page, totalPage, this.spinIcon)}>
+              <i ref={(icon) => {this.spinIcon = icon}} className="iconfont spin">&#xe851;</i>
+              换一批
+            </SearchInfoSwitch>
           </SearchInfoTitle>
           <SearchInfoList>
-            <SearchInfoItem>教育</SearchInfoItem>
-            <SearchInfoItem>教育</SearchInfoItem>
-            <SearchInfoItem>教育</SearchInfoItem>
-            <SearchInfoItem>教育</SearchInfoItem>
-            <SearchInfoItem>教育</SearchInfoItem>
-            <SearchInfoItem>教育</SearchInfoItem>
-            <SearchInfoItem>教育</SearchInfoItem>
+            {pageList}
           </SearchInfoList>
         </SearchInfo>
       )
@@ -46,6 +59,9 @@ class Header extends Component {
   }
 
   render () {
+
+    const { focused, handleInputFocus, handleInputBlur, list } = this.props
+
     return (
       <HeaderWrapper>
         <Logo />
@@ -58,18 +74,18 @@ class Header extends Component {
           </NavItem>
           <SearchWrapper>
             <CSSTransition
-              in={this.props.focused}
+              in={focused}
               timeout={300}
               classNames="slide"
             >
               <NavSearch
-                className={this.props.focused ? 'focused' : ''}
-                onFocus = {this.props.handleInputFocus}
-                onBlur = {this.props.handleInputBlur}
+                className={focused ? 'focused' : ''}
+                onFocus = {() => {handleInputFocus(list)}}
+                onBlur = {handleInputBlur}
               ></NavSearch>
             </CSSTransition>
-            <i className={this.props.focused ? 'focused iconfont' : 'iconfont'}>&#xe614;</i>
-            {this.getListArea(this.props.focused)}
+            <i className={focused ? 'focused iconfont zoom' : 'iconfont zoom'}>&#xe614;</i>
+            {this.getListArea()}
           </SearchWrapper>
         </Nav>
         <Addition>
@@ -86,15 +102,21 @@ class Header extends Component {
 
 const mapStateToProps = (state) => {
   return {
-    focused: state.get('header').get('focused')
+    focused: state.get('header').get('focused'),
     // 等价 focused: state.getIn(['header', 'focused'])
+    list: state.getIn(['header', 'list']),
+    page: state.getIn(['header', 'page']),
+    mouseIn: state.getIn(['header', 'mouseIn']),
+    totalPage: state.getIn(['header', 'totalPage'])
   }
 }
 
 const mapDispatchToProps = (dispatch) => {
   return {
-    handleInputFocus() {
-      dispatch(actionCreators.getList())
+    handleInputFocus(list) {
+      if (list.size === 0) {
+        dispatch(actionCreators.getList())
+      }
       const action = actionCreators.searchFocus()
       dispatch(action)
     },
@@ -102,6 +124,29 @@ const mapDispatchToProps = (dispatch) => {
     handleInputBlur() {
       const action = actionCreators.searchBlur()
       dispatch(action)
+    },
+
+    handleMouseEnter() {
+      dispatch(actionCreators.mouseEnter())
+    },
+
+    handleMouseLeave() {
+      dispatch(actionCreators.mouseLeave())
+    },
+
+    handleChangePage(page, totalPage, spin) {
+      let originAngle = spin.style.transform.replace(/[^0-9]/ig, '')
+      if (originAngle) {
+        originAngle = parseInt(originAngle, 10)
+      } else {
+        originAngle = 0
+      }
+      spin.style.transform = `rotate(${originAngle + 360}deg)`
+      if (page < totalPage) {
+        dispatch(actionCreators.changePage(page + 1))
+      } else {
+        dispatch(actionCreators.changePage(1))
+      } 
     }
   }
 }
